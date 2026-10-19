@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Weinkeller</title>
+
+<meta name="theme-color" content="#5b1326">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Weinkeller">
+<meta name="description" content="Die private Weinsammlung im Überblick">
+
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-header__top">
+    <div>
+      <h1 class="app-header__title serif">Weinkeller</h1>
+      <div class="app-header__stats" id="statsLine">0 Flaschen</div>
+    </div>
+    <button class="add-btn" id="btnAdd" aria-label="Wein hinzufügen">+</button>
+  </div>
+  <div class="search-row">
+    <input type="text" class="search-input" id="searchInput" placeholder="Suchen nach Name, Weingut, Region …">
+    <select class="sort-select" id="sortSelect">
+      <option value="name">Name A–Z</option>
+      <option value="vintage-desc">Jahrgang, neu zuerst</option>
+      <option value="vintage-asc">Jahrgang, alt zuerst</option>
+      <option value="region">Region</option>
+      <option value="grape">Rebsorte</option>
+      <option value="quantity-desc">Meiste Flaschen</option>
+    </select>
+  </div>
+  <div class="chip-row" id="typeChips">
+    <button class="chip active" data-type="alle">Alle</button>
+    <button class="chip" data-type="rot">Rot</button>
+    <button class="chip" data-type="weiss">Weiss</button>
+    <button class="chip" data-type="rose">Rosé</button>
+    <button class="chip" data-type="schaum">Schaumwein</button>
+    <button class="chip" data-type="dessert">Dessert</button>
+    <button class="chip" data-type="vorraetig">Nur vorrätig</button>
+  </div>
+</header>
+
+<main class="main">
+  <div class="wine-grid" id="wineGrid"></div>
+  <div class="empty-state hidden" id="emptyState">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M8 2h8v6a4 4 0 0 1-8 0V2Z"/><path d="M12 12v8M8 20h8"/></svg>
+    <h2 class="serif">Noch kein Wein erfasst</h2>
+    <p>Füge die erste Flasche aus deiner Sammlung hinzu.</p>
+    <button class="cta" id="emptyAddBtn">Wein hinzufügen</button>
+  </div>
+</main>
+
+<!-- Detail sheet -->
+<div class="overlay" id="detailOverlay">
+  <div class="sheet" id="detailSheet">
+    <div class="sheet__handle"></div>
+    <div class="sheet__header">
+      <span></span>
+      <button class="sheet__close" id="detailClose" aria-label="Schliessen">×</button>
+    </div>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<!-- Add/Edit form sheet -->
+<div class="overlay" id="formOverlay">
+  <div class="sheet" id="formSheet">
+    <div class="sheet__handle"></div>
+    <div class="sheet__header">
+      <h2 class="serif" id="formTitle" style="margin:0;font-size:19px;">Wein hinzufügen</h2>
+      <button class="sheet__close" id="formClose" aria-label="Schliessen">×</button>
+    </div>
+    <form id="wineForm" class="form-body">
+      <input type="hidden" id="fId">
+
+      <div class="photo-picker">
+        <img class="photo-preview hidden" id="photoPreviewImg" alt="Etikett">
+        <div class="photo-preview photo-preview--empty" id="photoPreviewEmpty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M4 7h3l2-2h6l2 2h3v12H4V7Z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        </div>
+        <div class="photo-picker-btns">
+          <label for="fPhotoInput">Foto vom Etikett</label>
+          <input type="file" accept="image/*" capture="environment" id="fPhotoInput" class="hidden">
+          <button type="button" class="remove-photo hidden" id="btnRemovePhoto">Foto entfernen</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="fName">Name des Weins *</label>
+        <input type="text" id="fName" required placeholder="z. B. Château Montrose">
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="fProducer">Weingut / Produzent</label>
+          <input type="text" id="fProducer" list="producerList">
+          <datalist id="producerList"></datalist>
+        </div>
+        <div class="field">
+          <label for="fVintage">Jahrgang</label>
+          <input type="number" id="fVintage" min="1900" max="2100" placeholder="z. B. 2018">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Typ</label>
+        <div class="type-picker" id="typePicker">
+          <button type="button" data-type="rot" class="active">Rot</button>
+          <button type="button" data-type="weiss">Weiss</button>
+          <button type="button" data-type="rose">Rosé</button>
+          <button type="button" data-type="schaum">Schaumwein</button>
+          <button type="button" data-type="dessert">Dessert</button>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="fGrape">Rebsorte</label>
+          <input type="text" id="fGrape" list="grapeList" placeholder="z. B. Merlot">
+          <datalist id="grapeList"></datalist>
+        </div>
+        <div class="field">
+          <label for="fAlcohol">Alkohol (%)</label>
+          <input type="number" id="fAlcohol" min="0" max="25" step="0.1" placeholder="z. B. 13.5">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="fRegion">Region / Herkunft</label>
+        <input type="text" id="fRegion" list="regionList" placeholder="z. B. Bordeaux, Frankreich">
+        <datalist id="regionList"></datalist>
+      </div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="fQuantity">Bestand (Flaschen)</label>
+          <input type="number" id="fQuantity" min="0" value="1">
+        </div>
+        <div class="field">
+          <label for="fPrice">Preis (CHF)</label>
+          <input type="number" id="fPrice" min="0" step="0.05" placeholder="optional">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="fLocation">Lagerort</label>
+        <input type="text" id="fLocation" placeholder="z. B. Regal 3, Reihe B">
+      </div>
+
+      <div class="field">
+        <label for="fReorderLink">Nachbestell-Link</label>
+        <input type="url" id="fReorderLink" placeholder="optional, z. B. Shop-Link">
+      </div>
+
+      <div class="field">
+        <label for="fNotes">Notizen</label>
+        <textarea id="fNotes" placeholder="Verkostungsnotizen, Anlass, Empfehlung …"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn" id="formCancel">Abbrechen</button>
+        <button type="submit" class="btn primary" id="formSave">Speichern</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
