@@ -450,7 +450,7 @@ async function deleteWine(id) {
 
 function openForm(wine) {
   wineForm.reset();
-  currentPhotos = wine && wine.photos ? wine.photos.slice() : [];
+  currentPhotos = wine && (wine.photosRaw || wine.photos) ? (wine.photosRaw || wine.photos).slice() : [];
   renderPhotoStrip();
 
   el("fId").value = wine ? wine.id : "";
@@ -517,6 +517,45 @@ function handlePhotoChange(e) {
   });
 }
 
+function loadImageEl(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+async function buildInterpolatedSequence(photos, framesPerGap) {
+  if (photos.length < 2) return photos.slice();
+
+  const images = await Promise.all(photos.map(loadImageEl));
+  const w = images[0].width;
+  const h = images[0].height;
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const ctx = canvas.getContext("2d");
+
+  const result = [];
+  for (let i = 0; i < images.length; i++) {
+    result.push(photos[i]);
+    if (i < images.length - 1) {
+      for (let k = 1; k <= framesPerGap; k++) {
+        const t = k / (framesPerGap + 1);
+        ctx.clearRect(0, 0, w, h);
+        ctx.globalAlpha = 1;
+        ctx.drawImage(images[i], 0, 0, w, h);
+        ctx.globalAlpha = t;
+        ctx.drawImage(images[i + 1], 0, 0, w, h);
+        ctx.globalAlpha = 1;
+        result.push(canvas.toDataURL("image/jpeg", 0.82));
+      }
+    }
+  }
+  return result;
+}
+
 function resizeImageToDataUrl(file, maxDim, quality) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -555,6 +594,14 @@ async function handleFormSubmit(e) {
   const activeTypeBtn = typePicker.querySelector(".active");
   const id = el("fId").value || cryptoRandomId();
 
+  const saveBtn = el("formSave");
+  const saveBtnLabel = saveBtn.textContent;
+  const interpolating = currentPhotos.length > 2;
+  if (interpolating) saveBtn.textContent = "Fotos werden verrechnet…";
+  saveBtn.disabled = true;
+
+  const expandedPhotos = await buildInterpolatedSequence(currentPhotos, 2);
+
   const wine = {
     id,
     name,
@@ -569,11 +616,15 @@ async function handleFormSubmit(e) {
     location: el("fLocation").value.trim(),
     reorderLink: el("fReorderLink").value.trim(),
     notes: el("fNotes").value.trim(),
-    photos: currentPhotos.slice(),
+    photosRaw: currentPhotos.slice(),
+    photos: expandedPhotos,
     dateAdded: el("fId").value
       ? (wines.find((w) => w.id === id) || {}).dateAdded || new Date().toISOString()
       : new Date().toISOString()
   };
+
+  saveBtn.textContent = saveBtnLabel;
+  saveBtn.disabled = false;
 
   await dbPut(wine);
 
