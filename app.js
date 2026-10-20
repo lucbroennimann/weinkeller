@@ -226,7 +226,7 @@ function renderCard(wine) {
     : `<div class="wine-card__photo wine-card__photo--placeholder">${PLACEHOLDER_GLASS}</div>`;
 
   const typeTag = wine.type
-    ? `<span class="tag ${TYPE_TAG_CLASS[wine.type] || ""}">${TYPE_LABELS[wine.type] || wine.type}</span>`
+    ? `<span class="tag ${TYPE_TAG_CLASS[wine.type] || ""}"><span class="dot"></span>${TYPE_LABELS[wine.type] || wine.type}</span>`
     : "";
   const vintageTag = wine.vintage ? `<span class="tag">${wine.vintage}</span>` : "";
   const regionTag = wine.region ? `<span class="tag">${escapeHtml(wine.region)}</span>` : "";
@@ -283,7 +283,7 @@ function openDetail(id) {
     : `<div class="detail-photo detail-photo--placeholder">${PLACEHOLDER_GLASS}</div>`;
 
   const typeTag = wine.type
-    ? `<span class="tag ${TYPE_TAG_CLASS[wine.type] || ""}">${TYPE_LABELS[wine.type] || wine.type}</span>`
+    ? `<span class="tag ${TYPE_TAG_CLASS[wine.type] || ""}"><span class="dot"></span>${TYPE_LABELS[wine.type] || wine.type}</span>`
     : "";
 
   const fields = [

@@ -1,23 +1,25 @@
 :root {
-  --wine: #5b1326;
-  --wine-dark: #420d1c;
-  --wine-light: #8c2f39;
-  --cream: #f6efe4;
-  --cream-card: #fffdf9;
-  --gold: #b48a3f;
-  --ink: #2c1810;
-  --ink-soft: #6e5a4f;
-  --border: #e6dbc8;
-  --red-type: #8c2f39;
-  --white-type: #b89a3a;
-  --rose-type: #d98a9c;
-  --sparkling-type: #7f9c6b;
-  --dessert-type: #b5651d;
-  --radius-lg: 20px;
-  --radius-md: 14px;
-  --radius-sm: 9px;
-  --shadow: 0 4px 16px rgba(44, 24, 16, 0.08), 0 1px 3px rgba(44, 24, 16, 0.06);
-  --shadow-lg: 0 16px 40px rgba(44, 24, 16, 0.22);
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-alt: #f6f6f7;
+  --ink: #121214;
+  --ink-soft: #7a7a82;
+  --border: #e9e9ec;
+  --accent: #121214;
+  --accent-contrast: #ffffff;
+  --danger: #c0433f;
+
+  --dot-rot: #b23b3b;
+  --dot-weiss: #c6a430;
+  --dot-rose: #cf6f8a;
+  --dot-schaum: #b4941c;
+  --dot-dessert: #b5701f;
+
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --radius-sm: 11px;
+  --shadow: 0 1px 2px rgba(18, 18, 20, 0.04), 0 8px 24px rgba(18, 18, 20, 0.05);
+  --shadow-lg: 0 24px 60px rgba(18, 18, 20, 0.16);
 }
 
 * { box-sizing: border-box; }
@@ -25,7 +27,7 @@
 html, body {
   margin: 0;
   height: 100%;
-  background: var(--cream);
+  background: var(--bg);
   color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;
@@ -38,7 +40,9 @@ body {
 }
 
 h1, h2, h3, .serif {
-  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  font-family: inherit;
+  letter-spacing: -0.02em;
+  font-weight: 700;
 }
 
 button {
@@ -52,10 +56,10 @@ button {
   position: sticky;
   top: 0;
   z-index: 20;
-  background: linear-gradient(180deg, var(--wine) 0%, var(--wine-dark) 100%);
-  color: var(--cream);
+  background: var(--bg);
+  color: var(--ink);
   padding: max(16px, env(safe-area-inset-top)) 18px 14px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+  border-bottom: 1px solid var(--border);
 }
 
 .app-header__top {
@@ -66,31 +70,30 @@ button {
 }
 
 .app-header__title {
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
+  font-size: 25px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   margin: 0;
 }
 
 .app-header__stats {
   font-size: 12.5px;
-  opacity: 0.8;
+  color: var(--ink-soft);
   margin-top: 2px;
 }
 
 .add-btn {
-  background: var(--gold);
-  color: var(--wine-dark);
+  background: var(--accent);
+  color: var(--accent-contrast);
   border: none;
   width: 42px;
   height: 42px;
   border-radius: 50%;
   font-size: 24px;
-  font-weight: 600;
+  font-weight: 500;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.25);
   flex-shrink: 0;
 }
 .add-btn:active { transform: scale(0.94); }
@@ -102,12 +105,12 @@ button {
 }
 
 .sort-select {
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.2);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  color: var(--cream);
-  padding: 10px 10px;
-  font-size: 14px;
+  color: var(--ink);
+  padding: 9px 10px;
+  font-size: 13.5px;
 }
 .sort-select option { color: var(--ink); }
 
@@ -123,18 +126,18 @@ button {
 
 .chip {
   flex-shrink: 0;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.22);
-  color: var(--cream);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--ink);
   padding: 6px 13px;
   border-radius: 999px;
   font-size: 13px;
   white-space: nowrap;
 }
 .chip.active {
-  background: var(--gold);
-  border-color: var(--gold);
-  color: var(--wine-dark);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
   font-weight: 600;
 }
 
@@ -153,7 +156,7 @@ button {
 }
 
 .wine-card {
-  background: var(--cream-card);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -169,7 +172,7 @@ button {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  background: linear-gradient(135deg, #efe3cf, #e3d4b8);
+  background: var(--surface-alt);
   display: block;
 }
 
@@ -178,7 +181,7 @@ button {
   align-items: center;
   justify-content: center;
 }
-.wine-card__photo--placeholder svg { width: 38%; height: 38%; opacity: 0.35; }
+.wine-card__photo--placeholder svg { width: 38%; height: 38%; opacity: 0.25; }
 
 .wine-card__body {
   padding: 12px 13px 13px;
@@ -200,6 +203,7 @@ button {
   font-weight: 700;
   line-height: 1.25;
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .wine-card__producer {
@@ -215,33 +219,46 @@ button {
 }
 
 .tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-size: 11px;
-  padding: 3px 8px;
+  padding: 3px 9px;
   border-radius: 999px;
-  background: #efe3cf;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
   color: var(--ink-soft);
   white-space: nowrap;
 }
 
-.tag.type-rot { background: #f1dde0; color: var(--red-type); }
-.tag.type-weiss { background: #f6eec2; color: #8a6d16; }
-.tag.type-rose { background: #fbe3e9; color: #ad5b70; }
-.tag.type-schaum { background: #e3efda; color: #4f6b3c; }
-.tag.type-dessert { background: #f4ddc4; color: var(--dessert-type); }
+.tag .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tag.type-rot .dot { background: var(--dot-rot); }
+.tag.type-weiss .dot { background: var(--dot-weiss); }
+.tag.type-rose .dot { background: var(--dot-rose); }
+.tag.type-schaum .dot { background: var(--dot-schaum); }
+.tag.type-dessert .dot { background: var(--dot-dessert); }
 
 .stock-badge {
   flex-shrink: 0;
   font-size: 12px;
   font-weight: 700;
-  padding: 4px 9px;
+  padding: 4px 10px;
   border-radius: 999px;
-  background: #e5f1e1;
-  color: #3f6b2f;
+  background: var(--accent);
+  color: var(--accent-contrast);
   white-space: nowrap;
 }
 .stock-badge.empty {
-  background: #f1e6e6;
-  color: #a35050;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--ink-soft);
+  font-weight: 600;
 }
 
 /* ---------- Empty state ---------- */
@@ -251,12 +268,12 @@ button {
   padding: 70px 24px;
   color: var(--ink-soft);
 }
-.empty-state svg { width: 64px; height: 64px; opacity: 0.3; margin-bottom: 14px; }
+.empty-state svg { width: 64px; height: 64px; opacity: 0.2; margin-bottom: 14px; }
 .empty-state h2 { margin: 0 0 6px; color: var(--ink); }
 .empty-state p { margin: 0 0 20px; font-size: 14.5px; }
 .empty-state .cta {
-  background: var(--wine);
-  color: var(--cream);
+  background: var(--accent);
+  color: var(--accent-contrast);
   border: none;
   padding: 12px 22px;
   border-radius: 999px;
@@ -269,7 +286,7 @@ button {
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(30, 16, 10, 0.45);
+  background: rgba(18, 18, 20, 0.4);
   z-index: 40;
   display: flex;
   align-items: flex-end;
@@ -285,7 +302,7 @@ button {
 }
 
 .sheet {
-  background: var(--cream);
+  background: var(--bg);
   width: 100%;
   max-width: 560px;
   max-height: 92vh;
@@ -332,18 +349,18 @@ button {
   width: 100%;
   aspect-ratio: 16 / 10;
   object-fit: cover;
-  background: linear-gradient(135deg, #efe3cf, #e3d4b8);
+  background: var(--surface-alt);
 }
 .detail-photo--placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.detail-photo--placeholder svg { width: 72px; height: 72px; opacity: 0.3; }
+.detail-photo--placeholder svg { width: 72px; height: 72px; opacity: 0.2; }
 
 .detail-body { padding: 18px 20px 8px; }
 
-.detail-title { font-size: 22px; font-weight: 700; margin: 0 0 2px; }
+.detail-title { font-size: 22px; font-weight: 800; margin: 0 0 2px; letter-spacing: -0.02em; }
 .detail-producer { color: var(--ink-soft); font-size: 15px; margin-bottom: 10px; }
 
 .detail-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
@@ -358,14 +375,14 @@ button {
 .detail-field__label {
   font-size: 11.5px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   color: var(--ink-soft);
   margin-bottom: 2px;
 }
 .detail-field__value { font-size: 15px; font-weight: 600; }
 
 .detail-notes {
-  background: var(--cream-card);
+  background: var(--surface-alt);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 12px 14px;
@@ -379,35 +396,35 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--cream-card);
+  background: var(--surface-alt);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 14px 16px;
   margin-bottom: 16px;
 }
 .stock-control__label { font-size: 13px; color: var(--ink-soft); }
-.stock-control__count { font-size: 26px; font-weight: 700; color: var(--wine); }
+.stock-control__count { font-size: 26px; font-weight: 800; color: var(--ink); }
 .stepper { display: flex; align-items: center; gap: 14px; }
 .stepper button {
   width: 40px;
   height: 40px;
   border-radius: 50%;
   border: 1px solid var(--border);
-  background: var(--cream);
+  background: var(--bg);
   font-size: 20px;
   font-weight: 700;
-  color: var(--wine);
+  color: var(--ink);
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.stepper button:active { background: var(--wine); color: var(--cream); }
+.stepper button:active { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
 
 .reorder-link {
   display: block;
   text-align: center;
-  background: var(--gold);
-  color: var(--wine-dark);
+  background: var(--accent);
+  color: var(--accent-contrast);
   text-decoration: none;
   font-weight: 600;
   padding: 12px;
@@ -426,13 +443,13 @@ button {
   padding: 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  background: var(--cream-card);
+  background: var(--bg);
   font-size: 14.5px;
   font-weight: 600;
   color: var(--ink);
 }
-.btn.danger { color: #a33b3b; }
-.btn.primary { background: var(--wine); color: var(--cream); border-color: var(--wine); }
+.btn.danger { color: var(--danger); }
+.btn.primary { background: var(--accent); color: var(--accent-contrast); border-color: var(--accent); }
 
 /* ---------- Form ---------- */
 
@@ -452,12 +469,18 @@ button {
 .field textarea {
   width: 100%;
   border: 1px solid var(--border);
-  background: var(--cream-card);
+  background: var(--surface-alt);
   border-radius: var(--radius-sm);
   padding: 11px 12px;
   font-size: 15px;
   color: var(--ink);
   font-family: inherit;
+}
+.field input:focus,
+.field textarea:focus {
+  outline: none;
+  border-color: var(--ink);
+  background: var(--bg);
 }
 .field textarea { resize: vertical; min-height: 70px; }
 
@@ -466,17 +489,17 @@ button {
 
 .type-picker { display: flex; flex-wrap: wrap; gap: 8px; }
 .type-picker button {
-  border: 1.5px solid var(--border);
-  background: var(--cream-card);
+  border: 1px solid var(--border);
+  background: var(--bg);
   padding: 8px 14px;
   border-radius: 999px;
   font-size: 13.5px;
   color: var(--ink-soft);
 }
 .type-picker button.active {
-  border-color: var(--wine);
-  background: var(--wine);
-  color: var(--cream);
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-contrast);
   font-weight: 600;
 }
 
@@ -491,7 +514,7 @@ button {
   height: 84px;
   border-radius: var(--radius-sm);
   object-fit: cover;
-  background: #efe3cf;
+  background: var(--surface-alt);
   border: 1px solid var(--border);
 }
 .photo-preview--empty {
@@ -499,7 +522,7 @@ button {
   align-items: center;
   justify-content: center;
 }
-.photo-preview--empty svg { width: 34px; height: 34px; opacity: 0.35; }
+.photo-preview--empty svg { width: 34px; height: 34px; opacity: 0.25; }
 
 .photo-picker-btns { display: flex; flex-direction: column; gap: 8px; }
 .photo-picker-btns label, .photo-picker-btns button {
@@ -508,11 +531,11 @@ button {
   padding: 9px 14px;
   border-radius: 999px;
   border: 1px solid var(--border);
-  background: var(--cream-card);
+  background: var(--bg);
   color: var(--ink);
   text-align: center;
 }
-.photo-picker-btns .remove-photo { color: #a33b3b; }
+.photo-picker-btns .remove-photo { color: var(--danger); }
 
 .form-actions {
   display: flex;
@@ -526,7 +549,7 @@ button {
   left: 50%;
   transform: translateX(-50%) translateY(10px);
   background: var(--ink);
-  color: var(--cream);
+  color: #ffffff;
   padding: 11px 20px;
   border-radius: 999px;
   font-size: 13.5px;
