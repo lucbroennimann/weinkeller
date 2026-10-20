@@ -95,23 +95,11 @@ button {
 }
 .add-btn:active { transform: scale(0.94); }
 
-.search-row {
+.sort-row {
   margin-top: 12px;
   display: flex;
-  gap: 8px;
+  justify-content: flex-end;
 }
-
-.search-input {
-  flex: 1;
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  color: var(--cream);
-  font-size: 15px;
-}
-.search-input::placeholder { color: rgba(246,239,228,0.6); }
-.search-input:focus { outline: none; background: rgba(255,255,255,0.18); }
 
 .sort-select {
   background: rgba(255,255,255,0.12);
@@ -120,7 +108,6 @@ button {
   color: var(--cream);
   padding: 10px 10px;
   font-size: 14px;
-  max-width: 128px;
 }
 .sort-select option { color: var(--ink); }
 

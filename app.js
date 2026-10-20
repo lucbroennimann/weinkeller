@@ -56,7 +56,6 @@ async function dbDelete(id) {
 
 let wines = [];
 let activeTypeFilter = "alle";
-let searchQuery = "";
 let sortMode = "name";
 let currentPhotoData = null;
 
@@ -64,8 +63,8 @@ const TYPE_LABELS = {
   rot: "Rot",
   weiss: "Weiss",
   rose: "Rosé",
-  schaum: "Schaumwein",
-  dessert: "Dessert"
+  schaum: "Champagner",
+  dessert: "Süsswein"
 };
 const TYPE_TAG_CLASS = {
   rot: "type-rot",
@@ -81,7 +80,6 @@ const el = (id) => document.getElementById(id);
 const wineGrid = el("wineGrid");
 const emptyState = el("emptyState");
 const statsLine = el("statsLine");
-const searchInput = el("searchInput");
 const sortSelect = el("sortSelect");
 const typeChips = el("typeChips");
 
@@ -119,11 +117,6 @@ async function init() {
 function bindEvents() {
   el("btnAdd").addEventListener("click", () => openForm(null));
   el("emptyAddBtn").addEventListener("click", () => openForm(null));
-
-  searchInput.addEventListener("input", () => {
-    searchQuery = searchInput.value.trim().toLowerCase();
-    render();
-  });
 
   sortSelect.addEventListener("change", () => {
     sortMode = sortSelect.value;
@@ -175,12 +168,6 @@ function getFilteredSortedWines() {
     list = list.filter((w) => w.quantity > 0);
   } else if (activeTypeFilter !== "alle") {
     list = list.filter((w) => w.type === activeTypeFilter);
-  }
-
-  if (searchQuery) {
-    list = list.filter((w) =>
-      [w.name, w.producer, w.region, w.grape].filter(Boolean).join(" ").toLowerCase().includes(searchQuery)
-    );
   }
 
   switch (sortMode) {
