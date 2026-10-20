@@ -57,7 +57,7 @@ async function dbDelete(id) {
 let wines = [];
 let activeTypeFilter = "alle";
 let sortMode = "name";
-let currentPhotoData = null;
+let currentPhotos = [];
 
 const TYPE_LABELS = {
   rot: "Rot",
@@ -94,10 +94,8 @@ const formTitle = el("formTitle");
 const formClose = el("formClose");
 const formCancel = el("formCancel");
 const typePicker = el("typePicker");
-const photoPreviewImg = el("photoPreviewImg");
-const photoPreviewEmpty = el("photoPreviewEmpty");
+const photoStrip = el("photoStrip");
 const fPhotoInput = el("fPhotoInput");
-const btnRemovePhoto = el("btnRemovePhoto");
 
 const toastEl = el("toast");
 
@@ -151,10 +149,6 @@ function bindEvents() {
   });
 
   fPhotoInput.addEventListener("change", handlePhotoChange);
-  btnRemovePhoto.addEventListener("click", () => {
-    currentPhotoData = null;
-    updatePhotoPreview();
-  });
 
   wineForm.addEventListener("submit", handleFormSubmit);
 }
@@ -221,8 +215,9 @@ function renderCard(wine) {
   card.type = "button";
   card.addEventListener("click", () => openDetail(wine.id));
 
-  const photoHtml = wine.photo
-    ? `<img class="wine-card__photo" src="${wine.photo}" alt="${escapeHtml(wine.name)}">`
+  const cover = wine.photos && wine.photos.length ? wine.photos[0] : null;
+  const photoHtml = cover
+    ? `<img class="wine-card__photo" src="${cover}" alt="${escapeHtml(wine.name)}">`
     : `<div class="wine-card__photo wine-card__photo--placeholder">${PLACEHOLDER_GLASS}</div>`;
 
   const typeTag = wine.type
@@ -278,9 +273,16 @@ function openDetail(id) {
   const wine = wines.find((w) => w.id === id);
   if (!wine) return;
 
-  const photoHtml = wine.photo
-    ? `<img class="detail-photo" src="${wine.photo}" alt="${escapeHtml(wine.name)}">`
-    : `<div class="detail-photo detail-photo--placeholder">${PLACEHOLDER_GLASS}</div>`;
+  const photos = wine.photos || [];
+  const viewerHtml = photos.length > 1
+    ? `<div class="viewer-stage" id="viewerStage">
+         <img class="viewer-frame" id="viewerFrame" src="${photos[0]}" alt="${escapeHtml(wine.name)}" draggable="false">
+         <div class="viewer-hint" id="viewerHint"><span>⟷</span> Ziehen zum Drehen</div>
+         <div class="viewer-progress" id="viewerProgress"></div>
+       </div>`
+    : photos.length === 1
+      ? `<img class="detail-photo" src="${photos[0]}" alt="${escapeHtml(wine.name)}">`
+      : `<div class="detail-photo detail-photo--placeholder">${PLACEHOLDER_GLASS}</div>`;
 
   const typeTag = wine.type
     ? `<span class="tag ${TYPE_TAG_CLASS[wine.type] || ""}"><span class="dot"></span>${TYPE_LABELS[wine.type] || wine.type}</span>`
@@ -311,27 +313,29 @@ function openDetail(id) {
     : "";
 
   detailContent.innerHTML = `
-    ${photoHtml}
-    <div class="detail-body">
-      <h2 class="detail-title serif">${escapeHtml(wine.name)}</h2>
-      ${wine.producer ? `<div class="detail-producer">${escapeHtml(wine.producer)}</div>` : ""}
-      <div class="detail-tags">${typeTag}</div>
-      <div class="detail-grid">${fieldsHtml}</div>
-      ${notesHtml}
-      <div class="stock-control">
-        <div>
-          <div class="stock-control__label">Im Lager</div>
-          <div class="stock-control__count" id="stockCount">${wine.quantity}</div>
+    <div class="detail-layout">
+      <div class="detail-viewer">${viewerHtml}</div>
+      <div class="detail-body">
+        <h2 class="detail-title serif">${escapeHtml(wine.name)}</h2>
+        ${wine.producer ? `<div class="detail-producer">${escapeHtml(wine.producer)}</div>` : ""}
+        <div class="detail-tags">${typeTag}</div>
+        <div class="detail-grid">${fieldsHtml}</div>
+        ${notesHtml}
+        <div class="stock-control">
+          <div>
+            <div class="stock-control__label">Im Lager</div>
+            <div class="stock-control__count" id="stockCount">${wine.quantity}</div>
+          </div>
+          <div class="stepper">
+            <button type="button" id="stockMinus" aria-label="Flasche entnehmen">−</button>
+            <button type="button" id="stockPlus" aria-label="Flasche hinzufügen">+</button>
+          </div>
         </div>
-        <div class="stepper">
-          <button type="button" id="stockMinus" aria-label="Flasche entnehmen">−</button>
-          <button type="button" id="stockPlus" aria-label="Flasche hinzufügen">+</button>
+        ${reorderHtml}
+        <div class="detail-actions">
+          <button class="btn" id="btnEdit">Bearbeiten</button>
+          <button class="btn danger" id="btnDelete">Löschen</button>
         </div>
-      </div>
-      ${reorderHtml}
-      <div class="detail-actions">
-        <button class="btn" id="btnEdit">Bearbeiten</button>
-        <button class="btn danger" id="btnDelete">Löschen</button>
       </div>
     </div>
   `;
@@ -344,7 +348,74 @@ function openDetail(id) {
   });
   el("btnDelete").addEventListener("click", () => confirmDelete(wine));
 
+  if (photos.length > 1) initBottleViewer(photos);
+
   detailOverlay.classList.add("open");
+}
+
+/* ---------- 360° bottle viewer ---------- */
+
+function initBottleViewer(photos) {
+  const stage = el("viewerStage");
+  const frameImg = el("viewerFrame");
+  const hint = el("viewerHint");
+  const progress = el("viewerProgress");
+  if (!stage || !frameImg) return;
+
+  const n = photos.length;
+  let current = 0;
+  let dragging = false;
+  let startX = 0;
+  let startFrame = 0;
+  let hasDragged = false;
+
+  photos.forEach((src) => { const pre = new Image(); pre.src = src; });
+
+  for (let i = 0; i < n; i++) {
+    const dot = document.createElement("span");
+    dot.className = "viewer-progress__dot" + (i === 0 ? " active" : "");
+    progress.appendChild(dot);
+  }
+
+  function setFrame(index) {
+    current = ((index % n) + n) % n;
+    frameImg.src = photos[current];
+    [...progress.children].forEach((d, i) => d.classList.toggle("active", i === current));
+  }
+
+  function onDown(clientX) {
+    dragging = true;
+    startX = clientX;
+    startFrame = current;
+    stage.classList.add("grabbing");
+  }
+
+  function onMove(clientX) {
+    if (!dragging) return;
+    const deltaX = clientX - startX;
+    const sensitivity = Math.max(6, stage.clientWidth / n / 1.6);
+    const framesMoved = Math.round(-deltaX / sensitivity);
+    if (framesMoved !== 0 && !hasDragged) {
+      hasDragged = true;
+      hint.classList.add("fade");
+    }
+    setFrame(startFrame + framesMoved);
+  }
+
+  function onUp() {
+    dragging = false;
+    stage.classList.remove("grabbing");
+  }
+
+  stage.addEventListener("pointerdown", (e) => {
+    stage.setPointerCapture(e.pointerId);
+    onDown(e.clientX);
+  });
+  stage.addEventListener("pointermove", (e) => onMove(e.clientX));
+  stage.addEventListener("pointerup", onUp);
+  stage.addEventListener("pointercancel", onUp);
+
+  setTimeout(() => hint.classList.add("fade"), 3500);
 }
 
 function closeDetail() {
@@ -379,8 +450,8 @@ async function deleteWine(id) {
 
 function openForm(wine) {
   wineForm.reset();
-  currentPhotoData = wine ? wine.photo || null : null;
-  updatePhotoPreview();
+  currentPhotos = wine && wine.photos ? wine.photos.slice() : [];
+  renderPhotoStrip();
 
   el("fId").value = wine ? wine.id : "";
   formTitle.textContent = wine ? "Wein bearbeiten" : "Wein hinzufügen";
@@ -410,25 +481,39 @@ function closeForm() {
   formOverlay.classList.remove("open");
 }
 
-function updatePhotoPreview() {
-  if (currentPhotoData) {
-    photoPreviewImg.src = currentPhotoData;
-    photoPreviewImg.classList.remove("hidden");
-    photoPreviewEmpty.classList.add("hidden");
-    btnRemovePhoto.classList.remove("hidden");
-  } else {
-    photoPreviewImg.classList.add("hidden");
-    photoPreviewEmpty.classList.remove("hidden");
-    btnRemovePhoto.classList.add("hidden");
-  }
+function renderPhotoStrip() {
+  photoStrip.innerHTML = "";
+
+  currentPhotos.forEach((src, i) => {
+    const tile = document.createElement("div");
+    tile.className = "photo-strip__item";
+    tile.innerHTML = `
+      <img src="${src}" alt="Flaschenfoto ${i + 1}">
+      <span class="photo-strip__num">${i + 1}</span>
+      <button type="button" class="photo-strip__remove" aria-label="Foto entfernen">×</button>
+    `;
+    tile.querySelector(".photo-strip__remove").addEventListener("click", () => {
+      currentPhotos.splice(i, 1);
+      renderPhotoStrip();
+    });
+    photoStrip.appendChild(tile);
+  });
+
+  const addTile = document.createElement("button");
+  addTile.type = "button";
+  addTile.className = "photo-strip__add";
+  addTile.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h3l2-2h6l2 2h3v12H4V7Z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Foto</span>`;
+  addTile.addEventListener("click", () => fPhotoInput.click());
+  photoStrip.appendChild(addTile);
 }
 
 function handlePhotoChange(e) {
   const file = e.target.files[0];
   if (!file) return;
-  resizeImageToDataUrl(file, 1000, 0.78).then((dataUrl) => {
-    currentPhotoData = dataUrl;
-    updatePhotoPreview();
+  resizeImageToDataUrl(file, 1000, 0.8).then((dataUrl) => {
+    currentPhotos.push(dataUrl);
+    renderPhotoStrip();
+    fPhotoInput.value = "";
   });
 }
 
@@ -484,7 +569,7 @@ async function handleFormSubmit(e) {
     location: el("fLocation").value.trim(),
     reorderLink: el("fReorderLink").value.trim(),
     notes: el("fNotes").value.trim(),
-    photo: currentPhotoData,
+    photos: currentPhotos.slice(),
     dateAdded: el("fId").value
       ? (wines.find((w) => w.id === id) || {}).dateAdded || new Date().toISOString()
       : new Date().toISOString()

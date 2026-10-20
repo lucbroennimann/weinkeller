@@ -1,9 +1,9 @@
-const CACHE_NAME = "weinkeller-v3";
+const CACHE_NAME = "weinkeller-v5";
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css",
-  "./app.js",
+  "./styles.css?v=5",
+  "./app.js?v=5",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
