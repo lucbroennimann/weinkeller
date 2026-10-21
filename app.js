@@ -189,9 +189,7 @@ function bindEvents() {
 function getFilteredSortedWines() {
   let list = wines.slice();
 
-  if (activeTypeFilter === "vorraetig") {
-    list = list.filter((w) => w.quantity > 0);
-  } else if (activeTypeFilter !== "alle") {
+  if (activeTypeFilter !== "alle") {
     list = list.filter((w) => w.type === activeTypeFilter);
   }
 
