@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "weinkeller",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": [
+        "-ExecutionPolicy", "Bypass",
+        "-File", "C:\\Users\\lucbr\\.claude-local-tools\\static-server.ps1"
+      ],
+      "port": 8787
+    }
+  ]
+}
