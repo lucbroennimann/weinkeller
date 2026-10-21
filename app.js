@@ -57,7 +57,7 @@ async function dbDelete(id) {
 let wines = [];
 let activeTypeFilter = "alle";
 let sortMode = "name";
-let currentPhotos = [];
+let currentPhotoData = null;
 
 const TYPE_LABELS = {
   rot: "Rot",
@@ -94,8 +94,10 @@ const formTitle = el("formTitle");
 const formClose = el("formClose");
 const formCancel = el("formCancel");
 const typePicker = el("typePicker");
-const photoStrip = el("photoStrip");
+const photoPreviewImg = el("photoPreviewImg");
+const photoPreviewEmpty = el("photoPreviewEmpty");
 const fPhotoInput = el("fPhotoInput");
+const btnRemovePhoto = el("btnRemovePhoto");
 
 const toastEl = el("toast");
 
@@ -149,6 +151,10 @@ function bindEvents() {
   });
 
   fPhotoInput.addEventListener("change", handlePhotoChange);
+  btnRemovePhoto.addEventListener("click", () => {
+    currentPhotoData = null;
+    updatePhotoPreview();
+  });
 
   wineForm.addEventListener("submit", handleFormSubmit);
 }
@@ -215,9 +221,8 @@ function renderCard(wine) {
   card.type = "button";
   card.addEventListener("click", () => openDetail(wine.id));
 
-  const cover = wine.photos && wine.photos.length ? wine.photos[0] : null;
-  const photoHtml = cover
-    ? `<img class="wine-card__photo" src="${cover}" alt="${escapeHtml(wine.name)}">`
+  const photoHtml = wine.photo
+    ? `<img class="wine-card__photo" src="${wine.photo}" alt="${escapeHtml(wine.name)}">`
     : `<div class="wine-card__photo wine-card__photo--placeholder">${PLACEHOLDER_GLASS}</div>`;
 
   const typeTag = wine.type
@@ -273,16 +278,9 @@ function openDetail(id) {
   const wine = wines.find((w) => w.id === id);
   if (!wine) return;
 
-  const photos = wine.photos || [];
-  const viewerHtml = photos.length > 1
-    ? `<div class="viewer-stage" id="viewerStage">
-         <img class="viewer-frame" id="viewerFrame" src="${photos[0]}" alt="${escapeHtml(wine.name)}" draggable="false">
-         <div class="viewer-hint" id="viewerHint"><span>⟷</span> Ziehen zum Drehen</div>
-         <div class="viewer-progress" id="viewerProgress"></div>
-       </div>`
-    : photos.length === 1
-      ? `<img class="detail-photo" src="${photos[0]}" alt="${escapeHtml(wine.name)}">`
-      : `<div class="detail-photo detail-photo--placeholder">${PLACEHOLDER_GLASS}</div>`;
+  const photoHtml = wine.photo
+    ? `<img class="detail-photo" src="${wine.photo}" alt="${escapeHtml(wine.name)}">`
+    : `<div class="detail-photo detail-photo--placeholder">${PLACEHOLDER_GLASS}</div>`;
 
   const typeTag = wine.type
     ? `<span class="tag ${TYPE_TAG_CLASS[wine.type] || ""}"><span class="dot"></span>${TYPE_LABELS[wine.type] || wine.type}</span>`
@@ -314,7 +312,7 @@ function openDetail(id) {
 
   detailContent.innerHTML = `
     <div class="detail-layout">
-      <div class="detail-viewer">${viewerHtml}</div>
+      <div class="detail-viewer">${photoHtml}</div>
       <div class="detail-body">
         <h2 class="detail-title serif">${escapeHtml(wine.name)}</h2>
         ${wine.producer ? `<div class="detail-producer">${escapeHtml(wine.producer)}</div>` : ""}
@@ -348,74 +346,7 @@ function openDetail(id) {
   });
   el("btnDelete").addEventListener("click", () => confirmDelete(wine));
 
-  if (photos.length > 1) initBottleViewer(photos);
-
   detailOverlay.classList.add("open");
-}
-
-/* ---------- 360° bottle viewer ---------- */
-
-function initBottleViewer(photos) {
-  const stage = el("viewerStage");
-  const frameImg = el("viewerFrame");
-  const hint = el("viewerHint");
-  const progress = el("viewerProgress");
-  if (!stage || !frameImg) return;
-
-  const n = photos.length;
-  let current = 0;
-  let dragging = false;
-  let startX = 0;
-  let startFrame = 0;
-  let hasDragged = false;
-
-  photos.forEach((src) => { const pre = new Image(); pre.src = src; });
-
-  for (let i = 0; i < n; i++) {
-    const dot = document.createElement("span");
-    dot.className = "viewer-progress__dot" + (i === 0 ? " active" : "");
-    progress.appendChild(dot);
-  }
-
-  function setFrame(index) {
-    current = ((index % n) + n) % n;
-    frameImg.src = photos[current];
-    [...progress.children].forEach((d, i) => d.classList.toggle("active", i === current));
-  }
-
-  function onDown(clientX) {
-    dragging = true;
-    startX = clientX;
-    startFrame = current;
-    stage.classList.add("grabbing");
-  }
-
-  function onMove(clientX) {
-    if (!dragging) return;
-    const deltaX = clientX - startX;
-    const sensitivity = Math.max(6, stage.clientWidth / n / 1.6);
-    const framesMoved = Math.round(-deltaX / sensitivity);
-    if (framesMoved !== 0 && !hasDragged) {
-      hasDragged = true;
-      hint.classList.add("fade");
-    }
-    setFrame(startFrame + framesMoved);
-  }
-
-  function onUp() {
-    dragging = false;
-    stage.classList.remove("grabbing");
-  }
-
-  stage.addEventListener("pointerdown", (e) => {
-    stage.setPointerCapture(e.pointerId);
-    onDown(e.clientX);
-  });
-  stage.addEventListener("pointermove", (e) => onMove(e.clientX));
-  stage.addEventListener("pointerup", onUp);
-  stage.addEventListener("pointercancel", onUp);
-
-  setTimeout(() => hint.classList.add("fade"), 3500);
 }
 
 function closeDetail() {
@@ -450,8 +381,8 @@ async function deleteWine(id) {
 
 function openForm(wine) {
   wineForm.reset();
-  currentPhotos = wine && (wine.photosRaw || wine.photos) ? (wine.photosRaw || wine.photos).slice() : [];
-  renderPhotoStrip();
+  currentPhotoData = wine ? wine.photo || null : null;
+  updatePhotoPreview();
 
   el("fId").value = wine ? wine.id : "";
   formTitle.textContent = wine ? "Wein bearbeiten" : "Wein hinzufügen";
@@ -481,79 +412,27 @@ function closeForm() {
   formOverlay.classList.remove("open");
 }
 
-function renderPhotoStrip() {
-  photoStrip.innerHTML = "";
-
-  currentPhotos.forEach((src, i) => {
-    const tile = document.createElement("div");
-    tile.className = "photo-strip__item";
-    tile.innerHTML = `
-      <img src="${src}" alt="Flaschenfoto ${i + 1}">
-      <span class="photo-strip__num">${i + 1}</span>
-      <button type="button" class="photo-strip__remove" aria-label="Foto entfernen">×</button>
-    `;
-    tile.querySelector(".photo-strip__remove").addEventListener("click", () => {
-      currentPhotos.splice(i, 1);
-      renderPhotoStrip();
-    });
-    photoStrip.appendChild(tile);
-  });
-
-  const addTile = document.createElement("button");
-  addTile.type = "button";
-  addTile.className = "photo-strip__add";
-  addTile.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 7h3l2-2h6l2 2h3v12H4V7Z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Foto</span>`;
-  addTile.addEventListener("click", () => fPhotoInput.click());
-  photoStrip.appendChild(addTile);
+function updatePhotoPreview() {
+  if (currentPhotoData) {
+    photoPreviewImg.src = currentPhotoData;
+    photoPreviewImg.classList.remove("hidden");
+    photoPreviewEmpty.classList.add("hidden");
+    btnRemovePhoto.classList.remove("hidden");
+  } else {
+    photoPreviewImg.classList.add("hidden");
+    photoPreviewEmpty.classList.remove("hidden");
+    btnRemovePhoto.classList.add("hidden");
+  }
 }
 
 function handlePhotoChange(e) {
   const file = e.target.files[0];
   if (!file) return;
   resizeImageToDataUrl(file, 1000, 0.8).then((dataUrl) => {
-    currentPhotos.push(dataUrl);
-    renderPhotoStrip();
+    currentPhotoData = dataUrl;
+    updatePhotoPreview();
     fPhotoInput.value = "";
   });
-}
-
-function loadImageEl(src) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = src;
-  });
-}
-
-async function buildInterpolatedSequence(photos, framesPerGap) {
-  if (photos.length < 2) return photos.slice();
-
-  const images = await Promise.all(photos.map(loadImageEl));
-  const w = images[0].width;
-  const h = images[0].height;
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d");
-
-  const result = [];
-  for (let i = 0; i < images.length; i++) {
-    result.push(photos[i]);
-    if (i < images.length - 1) {
-      for (let k = 1; k <= framesPerGap; k++) {
-        const t = k / (framesPerGap + 1);
-        ctx.clearRect(0, 0, w, h);
-        ctx.globalAlpha = 1;
-        ctx.drawImage(images[i], 0, 0, w, h);
-        ctx.globalAlpha = t;
-        ctx.drawImage(images[i + 1], 0, 0, w, h);
-        ctx.globalAlpha = 1;
-        result.push(canvas.toDataURL("image/jpeg", 0.82));
-      }
-    }
-  }
-  return result;
 }
 
 function resizeImageToDataUrl(file, maxDim, quality) {
@@ -594,14 +473,6 @@ async function handleFormSubmit(e) {
   const activeTypeBtn = typePicker.querySelector(".active");
   const id = el("fId").value || cryptoRandomId();
 
-  const saveBtn = el("formSave");
-  const saveBtnLabel = saveBtn.textContent;
-  const interpolating = currentPhotos.length > 2;
-  if (interpolating) saveBtn.textContent = "Fotos werden verrechnet…";
-  saveBtn.disabled = true;
-
-  const expandedPhotos = await buildInterpolatedSequence(currentPhotos, 2);
-
   const wine = {
     id,
     name,
@@ -616,15 +487,11 @@ async function handleFormSubmit(e) {
     location: el("fLocation").value.trim(),
     reorderLink: el("fReorderLink").value.trim(),
     notes: el("fNotes").value.trim(),
-    photosRaw: currentPhotos.slice(),
-    photos: expandedPhotos,
+    photo: currentPhotoData,
     dateAdded: el("fId").value
       ? (wines.find((w) => w.id === id) || {}).dateAdded || new Date().toISOString()
       : new Date().toISOString()
   };
-
-  saveBtn.textContent = saveBtnLabel;
-  saveBtn.disabled = false;
 
   await dbPut(wine);
 
