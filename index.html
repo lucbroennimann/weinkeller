@@ -3,28 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Weinkeller</title>
+<title>La Cantina di Thomaso</title>
 
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#15110f">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Weinkeller">
+<meta name="apple-mobile-web-app-title" content="La Cantina di Thomaso">
 <meta name="description" content="Die private Weinsammlung im Überblick">
 
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/favicon-32.png" sizes="32x32">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<link rel="stylesheet" href="styles.css?v=7">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,400;1,500;1,600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body>
 
+<section class="hero">
+  <div class="hero__bg" id="heroBg"></div>
+  <div class="hero__overlay"></div>
+  <div class="hero__content">
+    <div class="hero__eyebrow">Private Sammlung</div>
+    <h1 class="hero__title serif">La Cantina di Thomaso</h1>
+  </div>
+</section>
+
 <header class="app-header">
   <div class="app-header__top">
-    <div>
-      <h1 class="app-header__title serif">Weinkeller</h1>
-      <div class="app-header__stats" id="statsLine">0 Flaschen</div>
-    </div>
+    <div class="app-header__stats" id="statsLine">0 Flaschen</div>
     <button class="add-btn" id="btnAdd" aria-label="Wein hinzufügen">+</button>
   </div>
   <div class="sort-row">
@@ -175,6 +186,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="app.js?v=7"></script>
+<script src="app.js?v=12"></script>
 </body>
 </html>

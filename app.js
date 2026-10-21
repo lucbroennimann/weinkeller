@@ -109,9 +109,34 @@ async function init() {
   wines = await dbGetAll();
   render();
   bindEvents();
+  bindHeroZoom();
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   }
+}
+
+function bindHeroZoom() {
+  const hero = document.querySelector(".hero");
+  const heroBg = el("heroBg");
+  if (!hero || !heroBg) return;
+
+  const MAX_SCALE = 1.22;
+  let ticking = false;
+
+  function update() {
+    ticking = false;
+    const progress = Math.min(Math.max(-hero.getBoundingClientRect().top, 0), hero.offsetHeight) / hero.offsetHeight;
+    heroBg.style.transform = `scale(${1 + progress * (MAX_SCALE - 1)})`;
+  }
+
+  window.addEventListener("scroll", () => {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(update);
+    }
+  }, { passive: true });
+
+  update();
 }
 
 function bindEvents() {
