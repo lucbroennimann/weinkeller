@@ -84,6 +84,8 @@ const statsLine = el("statsLine");
 const sortSelect = el("sortSelect");
 const searchInput = el("searchInput");
 const typeChips = el("typeChips");
+const btnExport = el("btnExport");
+const fImportInput = el("fImportInput");
 
 const detailOverlay = el("detailOverlay");
 const detailContent = el("detailContent");
@@ -153,6 +155,9 @@ function bindHeroZoom() {
 function bindEvents() {
   el("btnAdd").addEventListener("click", () => openForm(null));
   el("emptyAddBtn").addEventListener("click", () => openForm(null));
+
+  btnExport.addEventListener("click", exportWines);
+  fImportInput.addEventListener("change", handleImportFile);
 
   sortSelect.addEventListener("change", () => {
     sortMode = sortSelect.value;
@@ -560,6 +565,57 @@ async function handleFormSubmit(e) {
 function cryptoRandomId() {
   if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
   return "w-" + Date.now() + "-" + Math.random().toString(16).slice(2);
+}
+
+/* ---------- Export / Import ---------- */
+
+async function exportWines() {
+  const all = await dbGetAll();
+  const blob = new Blob([JSON.stringify(all, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const date = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `weinkeller-export-${date}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showToast(`${all.length} Weine exportiert`);
+}
+
+function handleImportFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    fImportInput.value = "";
+    let data;
+    try {
+      data = JSON.parse(reader.result);
+    } catch {
+      showToast("Datei konnte nicht gelesen werden");
+      return;
+    }
+    if (!Array.isArray(data)) {
+      showToast("Ungültiges Format");
+      return;
+    }
+    const valid = data.filter((w) => w && typeof w === "object" && w.id && w.name);
+    if (!valid.length) {
+      showToast("Keine Weine in der Datei gefunden");
+      return;
+    }
+    const ok = confirm(`${valid.length} Weine aus der Datei importieren? Bestehende Weine mit gleicher ID werden überschrieben.`);
+    if (!ok) return;
+    for (const wine of valid) {
+      await dbPut(wine);
+    }
+    wines = await dbGetAll();
+    render();
+    showToast(`${valid.length} Weine importiert`);
+  };
+  reader.readAsText(file);
 }
 
 /* ---------- Toast ---------- */

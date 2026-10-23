@@ -148,6 +148,29 @@ button {
 }
 .add-btn:active { transform: scale(0.94); }
 
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.icon-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--ink-soft);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.icon-btn svg { width: 17px; height: 17px; }
+.icon-btn:active { transform: scale(0.94); }
+
 .search-row {
   margin-top: 16px;
   display: flex;

@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;1,400;1,500;1,600&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=20">
+<link rel="stylesheet" href="styles.css?v=21">
 </head>
 <body>
 
@@ -35,7 +35,16 @@
 <header class="app-header">
   <div class="app-header__top">
     <div class="app-header__stats" id="statsLine">0 Flaschen</div>
-    <button class="add-btn" id="btnAdd" aria-label="Wein hinzufügen">+</button>
+    <div class="app-header__actions">
+      <button class="icon-btn" id="btnExport" aria-label="Sammlung exportieren" title="Sammlung als Datei exportieren">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      </button>
+      <label class="icon-btn" for="fImportInput" aria-label="Sammlung importieren" title="Sammlung aus Datei importieren">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 15V3m0 0 4 4m-4-4-4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+      </label>
+      <input type="file" accept="application/json" id="fImportInput" class="hidden">
+      <button class="add-btn" id="btnAdd" aria-label="Wein hinzufügen">+</button>
+    </div>
   </div>
   <div class="search-row">
     <div class="search-field">
@@ -188,6 +197,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="app.js?v=20"></script>
+<script src="app.js?v=21"></script>
 </body>
 </html>
