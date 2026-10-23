@@ -83,6 +83,7 @@ const emptyState = el("emptyState");
 const statsLine = el("statsLine");
 const sortSelect = el("sortSelect");
 const searchInput = el("searchInput");
+const searchSuggestions = el("searchSuggestions");
 const typeChips = el("typeChips");
 const btnExport = el("btnExport");
 const fImportInput = el("fImportInput");
@@ -167,6 +168,14 @@ function bindEvents() {
   searchInput.addEventListener("input", () => {
     searchQuery = searchInput.value.trim().toLowerCase();
     render();
+    renderSearchSuggestions();
+  });
+  searchInput.addEventListener("focus", renderSearchSuggestions);
+  searchInput.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") hideSearchSuggestions();
+  });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".search-field")) hideSearchSuggestions();
   });
 
   typeChips.addEventListener("click", (e) => {
@@ -207,6 +216,11 @@ function bindEvents() {
 
 /* ---------- Rendering ---------- */
 
+function wineMatchesQuery(wine, query) {
+  const haystack = [wine.name, wine.producer, wine.region, wine.grape].filter(Boolean).join(" ").toLowerCase();
+  return haystack.includes(query);
+}
+
 function getFilteredSortedWines() {
   let list = wines.slice();
 
@@ -215,10 +229,7 @@ function getFilteredSortedWines() {
   }
 
   if (searchQuery) {
-    list = list.filter((w) => {
-      const haystack = [w.name, w.producer, w.region, w.grape].filter(Boolean).join(" ").toLowerCase();
-      return haystack.includes(searchQuery);
-    });
+    list = list.filter((w) => wineMatchesQuery(w, searchQuery));
   }
 
   switch (sortMode) {
@@ -271,6 +282,53 @@ function render() {
   }
 
   refreshDatalists();
+}
+
+const MAX_SEARCH_SUGGESTIONS = 6;
+
+function hideSearchSuggestions() {
+  searchSuggestions.classList.add("hidden");
+  searchSuggestions.innerHTML = "";
+}
+
+function renderSearchSuggestions() {
+  if (!searchQuery) {
+    hideSearchSuggestions();
+    return;
+  }
+
+  const matches = wines.filter((w) => wineMatchesQuery(w, searchQuery)).slice(0, MAX_SEARCH_SUGGESTIONS);
+
+  if (matches.length === 0) {
+    searchSuggestions.innerHTML = `<div class="search-suggestions__empty">Keine Weine gefunden.</div>`;
+    searchSuggestions.classList.remove("hidden");
+    return;
+  }
+
+  searchSuggestions.innerHTML = matches.map((wine) => {
+    const photoHtml = wine.photo
+      ? `<img class="search-suggestion__photo" src="${wine.photo}" alt="">`
+      : `<div class="search-suggestion__photo search-suggestion__photo--placeholder">${PLACEHOLDER_GLASS}</div>`;
+    const meta = [wine.producer, wine.vintage].filter(Boolean).join(" · ");
+    return `
+      <button type="button" class="search-suggestion" data-id="${wine.id}">
+        ${photoHtml}
+        <span class="search-suggestion__text">
+          <span class="search-suggestion__name serif">${escapeHtml(wine.name)}</span>
+          ${meta ? `<span class="search-suggestion__meta">${escapeHtml(meta)}</span>` : ""}
+        </span>
+      </button>
+    `;
+  }).join("");
+
+  searchSuggestions.querySelectorAll(".search-suggestion").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      hideSearchSuggestions();
+      openDetail(btn.dataset.id);
+    });
+  });
+
+  searchSuggestions.classList.remove("hidden");
 }
 
 function renderCard(wine) {
