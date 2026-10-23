@@ -110,8 +110,33 @@ const PLACEHOLDER_GLASS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentC
 
 /* ---------- Init ---------- */
 
+const SEED_FLAG_KEY = "weinkeller-seeded";
+
+async function maybeSeedFromBundledData() {
+  if (wines.length > 0) return;
+  try {
+    if (localStorage.getItem(SEED_FLAG_KEY)) return;
+  } catch {
+    return;
+  }
+  try {
+    const res = await fetch("data/seed.json");
+    if (!res.ok) return;
+    const seed = await res.json();
+    if (!Array.isArray(seed) || !seed.length) return;
+    for (const wine of seed) {
+      await dbPut(wine);
+    }
+    wines = await dbGetAll();
+    localStorage.setItem(SEED_FLAG_KEY, "1");
+  } catch {
+    // Kein Seed verfuegbar oder Fetch fehlgeschlagen - einfach leer starten.
+  }
+}
+
 async function init() {
   wines = await dbGetAll();
+  await maybeSeedFromBundledData();
   render();
   bindEvents();
   bindHeroZoom();
