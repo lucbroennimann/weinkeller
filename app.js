@@ -491,6 +491,52 @@ function handlePhotoChange(e) {
   });
 }
 
+/* Referenzmass "Cerrado del Castillo": Flasche nimmt diesen Anteil der
+   Bildhoehe ein, auf diesem Seitenverhaeltnis. Neue Flaschenfotos werden
+   beim Hochladen automatisch auf dieses Mass gebracht. */
+const BOTTLE_TARGET_FRAC_H = 0.802142857;
+const BOTTLE_TARGET_AR = 0.567142857;
+const BOTTLE_WHITE_THRESH = 248;
+
+function normalizeBottleCanvas(srcCanvas) {
+  const w = srcCanvas.width;
+  const h = srcCanvas.height;
+  const data = srcCanvas.getContext("2d").getImageData(0, 0, w, h).data;
+
+  let minX = w, maxX = -1, minY = h, maxY = -1;
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const i = (y * w + x) * 4;
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      if (!(r >= BOTTLE_WHITE_THRESH && g >= BOTTLE_WHITE_THRESH && b >= BOTTLE_WHITE_THRESH)) {
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+      }
+    }
+  }
+  if (maxX < 0) return srcCanvas;
+
+  const bottleH = maxY - minY + 1;
+  const centerX = (minX + maxX) / 2;
+  const centerY = (minY + maxY) / 2;
+
+  const newH = Math.round(bottleH / BOTTLE_TARGET_FRAC_H);
+  const newW = Math.round(newH * BOTTLE_TARGET_AR);
+  const offsetX = Math.round(newW / 2 - centerX);
+  const offsetY = Math.round(newH / 2 - centerY);
+
+  const outCanvas = document.createElement("canvas");
+  outCanvas.width = newW;
+  outCanvas.height = newH;
+  const octx = outCanvas.getContext("2d");
+  octx.fillStyle = "#ffffff";
+  octx.fillRect(0, 0, newW, newH);
+  octx.drawImage(srcCanvas, offsetX, offsetY);
+  return outCanvas;
+}
+
 function resizeImageToDataUrl(file, maxDim, quality) {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -512,7 +558,8 @@ function resizeImageToDataUrl(file, maxDim, quality) {
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL("image/jpeg", quality));
+        const normalized = normalizeBottleCanvas(canvas);
+        resolve(normalized.toDataURL("image/jpeg", quality));
       };
       img.onerror = reject;
       img.src = reader.result;
