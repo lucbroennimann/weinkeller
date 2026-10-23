@@ -57,6 +57,7 @@ async function dbDelete(id) {
 let wines = [];
 let activeTypeFilter = "alle";
 let sortMode = "name";
+let searchQuery = "";
 let currentPhotoData = null;
 
 const TYPE_LABELS = {
@@ -81,6 +82,7 @@ const wineGrid = el("wineGrid");
 const emptyState = el("emptyState");
 const statsLine = el("statsLine");
 const sortSelect = el("sortSelect");
+const searchInput = el("searchInput");
 const typeChips = el("typeChips");
 
 const detailOverlay = el("detailOverlay");
@@ -118,15 +120,23 @@ async function init() {
 function bindHeroZoom() {
   const hero = document.querySelector(".hero");
   const heroBg = el("heroBg");
-  if (!hero || !heroBg) return;
+  const heroContent = document.querySelector(".hero__content");
+  const heroTitle = document.querySelector(".hero__title");
+  if (!hero || !heroBg || !heroContent || !heroTitle) return;
 
   const MAX_SCALE = 1.22;
+  const BOTTOM_GAP = 36;
   let ticking = false;
 
   function update() {
     ticking = false;
-    const progress = Math.min(Math.max(-hero.getBoundingClientRect().top, 0), hero.offsetHeight) / hero.offsetHeight;
+    const heroHeight = hero.offsetHeight;
+    const progress = Math.min(Math.max(-hero.getBoundingClientRect().top, 0), heroHeight) / heroHeight;
+
     heroBg.style.transform = `scale(${1 + progress * (MAX_SCALE - 1)})`;
+
+    const deltaY = heroHeight / 2 - heroTitle.offsetHeight / 2 - BOTTOM_GAP;
+    heroContent.style.transform = `translateY(${progress * deltaY}px)`;
   }
 
   window.addEventListener("scroll", () => {
@@ -135,6 +145,7 @@ function bindHeroZoom() {
       requestAnimationFrame(update);
     }
   }, { passive: true });
+  window.addEventListener("resize", update);
 
   update();
 }
@@ -145,6 +156,11 @@ function bindEvents() {
 
   sortSelect.addEventListener("change", () => {
     sortMode = sortSelect.value;
+    render();
+  });
+
+  searchInput.addEventListener("input", () => {
+    searchQuery = searchInput.value.trim().toLowerCase();
     render();
   });
 
@@ -193,6 +209,13 @@ function getFilteredSortedWines() {
     list = list.filter((w) => w.type === activeTypeFilter);
   }
 
+  if (searchQuery) {
+    list = list.filter((w) => {
+      const haystack = [w.name, w.producer, w.region, w.grape].filter(Boolean).join(" ").toLowerCase();
+      return haystack.includes(searchQuery);
+    });
+  }
+
   switch (sortMode) {
     case "vintage-desc":
       list.sort((a, b) => (b.vintage || 0) - (a.vintage || 0));
@@ -231,8 +254,15 @@ function render() {
   emptyState.classList.add("hidden");
   wineGrid.classList.remove("hidden");
 
-  for (const wine of list) {
-    wineGrid.appendChild(renderCard(wine));
+  if (list.length === 0) {
+    const noResults = document.createElement("p");
+    noResults.className = "no-results";
+    noResults.textContent = "Keine Weine gefunden.";
+    wineGrid.appendChild(noResults);
+  } else {
+    for (const wine of list) {
+      wineGrid.appendChild(renderCard(wine));
+    }
   }
 
   refreshDatalists();
@@ -313,9 +343,7 @@ function openDetail(id) {
     ["Jahrgang", wine.vintage || "—"],
     ["Rebsorte", wine.grape || "—"],
     ["Region", wine.region || "—"],
-    ["Alkohol", wine.alcohol ? `${wine.alcohol} %` : "—"],
-    ["Lagerort", wine.location || "—"],
-    ["Preis", wine.price ? `CHF ${Number(wine.price).toFixed(2)}` : "—"]
+    ["Alkohol", wine.alcohol ? `${wine.alcohol} %` : "—"]
   ];
 
   const fieldsHtml = fields.map(([label, value]) => `
@@ -476,6 +504,8 @@ function resizeImageToDataUrl(file, maxDim, quality) {
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
         resolve(canvas.toDataURL("image/jpeg", quality));
       };
