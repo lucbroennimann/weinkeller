@@ -1,55 +1,28 @@
 "use strict";
 
-/* ---------- IndexedDB layer ---------- */
+/* ---------- Firebase-Datenbank (geteilt, geraeteuebergreifend) ---------- */
 
-const DB_NAME = "weinkeller-db";
-const STORE = "wines";
-let dbPromise = null;
-
-function openDb() {
-  if (dbPromise) return dbPromise;
-  dbPromise = new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains(STORE)) {
-        db.createObjectStore(STORE, { keyPath: "id" });
-      }
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-  return dbPromise;
-}
+const FIREBASE_DB_URL = "https://weinkeller-papa-default-rtdb.europe-west1.firebasedatabase.app";
 
 async function dbGetAll() {
-  const db = await openDb();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, "readonly");
-    const req = tx.objectStore(STORE).getAll();
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
+  const res = await fetch(`${FIREBASE_DB_URL}/wines.json`);
+  if (!res.ok) throw new Error(`Firebase-Abruf fehlgeschlagen (${res.status})`);
+  const data = await res.json();
+  return data ? Object.values(data) : [];
 }
 
 async function dbPut(wine) {
-  const db = await openDb();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, "readwrite");
-    tx.objectStore(STORE).put(wine);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
+  const res = await fetch(`${FIREBASE_DB_URL}/wines/${encodeURIComponent(wine.id)}.json`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(wine)
   });
+  if (!res.ok) throw new Error(`Firebase-Speichern fehlgeschlagen (${res.status})`);
 }
 
 async function dbDelete(id) {
-  const db = await openDb();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, "readwrite");
-    tx.objectStore(STORE).delete(id);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
+  const res = await fetch(`${FIREBASE_DB_URL}/wines/${encodeURIComponent(id)}.json`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`Firebase-Loeschen fehlgeschlagen (${res.status})`);
 }
 
 /* ---------- State ---------- */
@@ -110,33 +83,13 @@ const PLACEHOLDER_GLASS = `<svg viewBox="0 0 24 24" fill="none" stroke="currentC
 
 /* ---------- Init ---------- */
 
-const SEED_FLAG_KEY = "weinkeller-seeded";
-
-async function maybeSeedFromBundledData() {
-  if (wines.length > 0) return;
-  try {
-    if (localStorage.getItem(SEED_FLAG_KEY)) return;
-  } catch {
-    return;
-  }
-  try {
-    const res = await fetch("data/seed.json");
-    if (!res.ok) return;
-    const seed = await res.json();
-    if (!Array.isArray(seed) || !seed.length) return;
-    for (const wine of seed) {
-      await dbPut(wine);
-    }
-    wines = await dbGetAll();
-    localStorage.setItem(SEED_FLAG_KEY, "1");
-  } catch {
-    // Kein Seed verfuegbar oder Fetch fehlgeschlagen - einfach leer starten.
-  }
-}
-
 async function init() {
-  wines = await dbGetAll();
-  await maybeSeedFromBundledData();
+  try {
+    wines = await dbGetAll();
+  } catch (err) {
+    console.error(err);
+    showToast("Verbindung zur Sammlung fehlgeschlagen");
+  }
   render();
   bindEvents();
   bindHeroZoom();
