@@ -1,9 +1,9 @@
-const CACHE_NAME = "weinkeller-v25";
+const CACHE_NAME = "weinkeller-v26";
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css?v=25",
-  "./app.js?v=25",
+  "./styles.css?v=26",
+  "./app.js?v=26",
   "./manifest.json",
   "./hero.jpg",
   "./icons/icon-192.png",
@@ -28,6 +28,13 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
+
+  const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) {
+    // Nie die Firebase-Datenbank (oder andere Fremd-APIs) cachen - immer frisch vom Netz.
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
