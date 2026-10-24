@@ -75,7 +75,7 @@ button {
 .hero__bg {
   position: absolute;
   inset: 0;
-  background: url("hero.jpg?v=30") center / cover no-repeat;
+  background: url("hero.jpg?v=31") center 38% / cover no-repeat;
   transform: scale(1);
   will-change: transform;
 }
@@ -84,6 +84,21 @@ button {
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, rgba(21, 17, 15, 0.1) 0%, rgba(21, 17, 15, 0.45) 65%, rgba(21, 17, 15, 0.72) 100%);
+}
+
+.hero__credit {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
+  z-index: 2;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.55);
+  text-decoration: none;
+}
+
+.hero__credit:hover {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .hero__content {
