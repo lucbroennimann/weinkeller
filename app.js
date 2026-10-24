@@ -254,6 +254,9 @@ function render() {
     noResults.textContent = "Keine Weine gefunden.";
     wineGrid.appendChild(noResults);
   } else {
+    if (activeTypeFilter === "alle" && !searchQuery) {
+      wineGrid.appendChild(renderBirthdayCard());
+    }
     for (const wine of list) {
       wineGrid.appendChild(renderCard(wine));
     }
@@ -344,6 +347,49 @@ function renderCard(wine) {
     </div>
   `;
   return card;
+}
+
+/* ---------- Geburtstagskarte (fest oben, nicht in der Datenbank) ---------- */
+
+const BIRTHDAY_STAR = `<svg viewBox="0 0 24 24" fill="#15110f" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6-4.9-4.6 6.6-.8z"/></svg>`;
+
+const BIRTHDAY_TEXT = `Lieber Papa
+
+Herzliche Gratulation zum Geburtstag. Schon wieder ist ein Jahr vorbei, in dem wir viel zusammen erlebt haben. Sei es im Death Valley, der Trift Hütte oder in Bolgheri, ich habe jedes Erlebniss mit dir in vollen Zügen genossen. Im kommenden Jahr wünsch ich dir viel Freude, Gesundheit und weitere unvergessliche Momente mit deinen Liebsten. Ich hab dich unfassbar lieb Papa 🖤
+
+Dein, Lüci`;
+
+function renderBirthdayCard() {
+  const card = document.createElement("button");
+  card.className = "wine-card";
+  card.type = "button";
+  card.addEventListener("click", openBirthdayDetail);
+  card.innerHTML = `
+    <div class="wine-card__photo birthday-star">${BIRTHDAY_STAR}</div>
+    <div class="wine-card__body">
+      <div class="wine-card__top">
+        <div>
+          <p class="wine-card__name serif">Alles Gute zum Geburtstag</p>
+          <p class="wine-card__producer">Von Lüci</p>
+        </div>
+      </div>
+    </div>
+  `;
+  return card;
+}
+
+function openBirthdayDetail() {
+  detailContent.innerHTML = `
+    <div class="detail-layout">
+      <div class="detail-viewer birthday-star birthday-star--large">${BIRTHDAY_STAR}</div>
+      <div class="detail-body">
+        <h2 class="detail-title serif">Alles Gute zum Geburtstag</h2>
+        <div class="detail-producer">Von Lüci</div>
+        <div class="birthday-letter">${escapeHtml(BIRTHDAY_TEXT)}</div>
+      </div>
+    </div>
+  `;
+  detailOverlay.classList.add("open");
 }
 
 function refreshDatalists() {

@@ -391,6 +391,22 @@ button {
 }
 .wine-card__photo--placeholder svg { width: 38%; height: 38%; opacity: 0.25; }
 
+.birthday-star {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.birthday-star svg { width: 46%; height: auto; }
+.birthday-star--large svg { width: 42%; max-width: 260px; }
+
+.birthday-letter {
+  margin: 18px 0 20px;
+  font-size: 15px;
+  line-height: 1.65;
+  white-space: pre-line;
+  color: var(--ink);
+}
+
 .wine-card__body {
   padding: 12px 13px 13px;
   display: flex;
