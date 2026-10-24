@@ -75,7 +75,7 @@ button {
 .hero__bg {
   position: absolute;
   inset: 0;
-  background: url("hero.jpg?v=29") center / cover no-repeat;
+  background: url("hero.jpg?v=30") center / cover no-repeat;
   transform: scale(1);
   will-change: transform;
 }
