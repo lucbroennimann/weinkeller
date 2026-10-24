@@ -1,11 +1,11 @@
-const CACHE_NAME = "weinkeller-v33";
+const CACHE_NAME = "weinkeller-v34";
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css?v=33",
-  "./app.js?v=33",
+  "./styles.css?v=34",
+  "./app.js?v=34",
   "./manifest.json",
-  "./hero.jpg?v=33",
+  "./hero.jpg?v=34",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/apple-touch-icon.png",

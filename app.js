@@ -355,7 +355,7 @@ const BIRTHDAY_STAR = `<svg viewBox="0 0 24 24" fill="#15110f" aria-hidden="true
 
 const BIRTHDAY_TEXT = `Lieber Papa
 
-Herzliche Gratulation zum Geburtstag. Schon wieder ist ein Jahr vorbei, in dem wir viel zusammen erlebt haben. Sei es im Death Valley, der Trift Hütte oder in Bolgheri, ich habe jedes Erlebniss mit dir in vollen Zügen genossen. Im kommenden Jahr wünsch ich dir viel Freude, Gesundheit und weitere unvergessliche Momente mit deinen Liebsten. Ich hab dich unfassbar lieb Papa 🖤
+Herzliche Gratulation zum Geburtstag. Schon wieder ist ein Jahr vorbei, in dem wir viel zusammen erlebt haben. Sei es im Death Valley, der Trift Hütte oder in Bolgheri, ich habe jedes Erlebniss mit dir in vollen Zügen genossen. Im kommenden Jahr wünsch ich dir viel Freude, Gesundheit und weitere unvergessliche Momente mit deinen Liebsten. Ich hab dich unfassbar lieb Papa 🖤
 
 Dein, Lüci`;
 
