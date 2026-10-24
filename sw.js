@@ -1,9 +1,9 @@
-const CACHE_NAME = "weinkeller-v27";
+const CACHE_NAME = "weinkeller-v28";
 const ASSETS = [
   "./",
   "./index.html",
-  "./styles.css?v=27",
-  "./app.js?v=27",
+  "./styles.css?v=28",
+  "./app.js?v=28",
   "./manifest.json",
   "./hero.jpg",
   "./icons/icon-192.png",
@@ -35,16 +35,16 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Zuerst das Netz, damit Updates sofort ankommen; Cache nur als Offline-Reserve.
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request)
-        .then((response) => {
+    fetch(event.request)
+      .then((response) => {
+        if (response.ok) {
           const copy = response.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          return response;
-        })
-        .catch(() => cached);
-    })
+        }
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });
