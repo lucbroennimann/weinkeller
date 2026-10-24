@@ -383,8 +383,7 @@ function openDetail(id) {
   const fields = [
     ["Jahrgang", wine.vintage || "—"],
     ["Rebsorte", wine.grape || "—"],
-    ["Region", wine.region || "—"],
-    ["Alkohol", wine.alcohol ? `${wine.alcohol} %` : "—"]
+    ["Region", wine.region || "—"]
   ];
 
   const fieldsHtml = fields.map(([label, value]) => `
@@ -483,7 +482,6 @@ function openForm(wine) {
   el("fProducer").value = wine ? wine.producer || "" : "";
   el("fVintage").value = wine && wine.vintage ? wine.vintage : "";
   el("fGrape").value = wine ? wine.grape || "" : "";
-  el("fAlcohol").value = wine && wine.alcohol ? wine.alcohol : "";
   el("fRegion").value = wine ? wine.region || "" : "";
   el("fQuantity").value = wine ? wine.quantity : 1;
   el("fPrice").value = wine && wine.price ? wine.price : "";
@@ -621,7 +619,6 @@ async function handleFormSubmit(e) {
     vintage: el("fVintage").value ? parseInt(el("fVintage").value, 10) : null,
     type: activeTypeBtn ? activeTypeBtn.dataset.type : "rot",
     grape: el("fGrape").value.trim(),
-    alcohol: el("fAlcohol").value ? parseFloat(el("fAlcohol").value) : null,
     region: el("fRegion").value.trim(),
     quantity: el("fQuantity").value ? parseInt(el("fQuantity").value, 10) : 0,
     price: el("fPrice").value ? parseFloat(el("fPrice").value) : null,
