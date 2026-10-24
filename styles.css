@@ -52,7 +52,12 @@ h1, h2, h3, .serif {
 
 button {
   font-family: inherit;
+  color: inherit;
   cursor: pointer;
+}
+
+input, select, textarea {
+  color: inherit;
 }
 
 .eyebrow {
